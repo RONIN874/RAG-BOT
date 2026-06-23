@@ -2,15 +2,15 @@
     "rewrites": [
         {
             "source": "/chat",
-            "destination": "/Frontend/chat.html"
+            "destination": "/chat.html"
         },
         {
             "source": "/dashboard",
-            "destination": "/Frontend/dashboard.html"
+            "destination": "/dashboard.html"
         },
         {
             "source": "/",
-            "destination": "/Frontend/index.html"
+            "destination": "/index.html"
         }
     ]
 }
