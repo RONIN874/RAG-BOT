@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
   <script>
     tailwind.config = {
       theme: {
@@ -17,70 +20,270 @@
             serif: ['"DM Serif Display"', 'Georgia', 'serif'],
           },
           colors: {
-            sage: { 50:'#f4f7f5',100:'#e6ede9',200:'#ccdbd3',300:'#a5c0b1',400:'#779f8b',500:'#557f6d',600:'#426357',700:'#364f46',800:'#2d3f39',900:'#273530' },
-            stone: { 50:'#fafaf9',100:'#f5f5f4',200:'#e7e5e4',300:'#d6d3d1',400:'#a8a29e',500:'#78716c',600:'#57534e',700:'#44403c',800:'#292524',900:'#1c1917' },
+            sage: { 50: '#f4f7f5', 100: '#e6ede9', 200: '#ccdbd3', 300: '#a5c0b1', 400: '#779f8b', 500: '#557f6d', 600: '#426357', 700: '#364f46', 800: '#2d3f39', 900: '#273530' },
+            stone: { 50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c', 800: '#292524', 900: '#1c1917' },
           },
         },
       },
     };
   </script>
   <style>
-    body { font-family:'DM Sans',sans-serif; background:#f4f7f5; overflow:hidden; }
-    ::-webkit-scrollbar { width:4px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:#ccdbd3; border-radius:10px; }
-    ::-webkit-scrollbar-thumb:hover { background:#a5c0b1; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f4f7f5;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccdbd3;
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a5c0b1;
+    }
 
     #sidebar {
-      position:fixed; top:0; left:0; bottom:0; width:280px;
-      background:#ffffff; border-right:1px solid #e6ede9;
-      z-index:40; display:flex; flex-direction:column;
-      transform:translateX(-100%); transition:transform 0.3s ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      background: #ffffff;
+      border-right: 1px solid #e6ede9;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
     }
-    #sidebar.open { transform:translateX(0); box-shadow:4px 0 24px rgba(0,0,0,0.07); }
+
+    #sidebar.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.07);
+    }
+
     #sidebar-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.18);
-      z-index:39; opacity:0; pointer-events:none; transition:opacity 0.3s ease;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.18);
+      z-index: 39;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
     }
-    #sidebar-overlay.visible { opacity:1; pointer-events:all; }
 
-    .history-item { padding:0.65rem 1rem; border-radius:8px; cursor:pointer; transition:background 0.15s ease; border:1px solid transparent; }
-    .history-item:hover { background:#f4f7f5; border-color:#e6ede9; }
-    .history-item.active { background:#e6ede9; border-color:#ccdbd3; }
+    #sidebar-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
 
-    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes fadeInLeft { from { opacity:0; transform:translateX(-16px); } to { opacity:1; transform:translateX(0); } }
-    .msg-animate { animation:fadeInUp 0.3s ease-out forwards; }
+    .history-item {
+      padding: 0.65rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      border: 1px solid transparent;
+    }
 
-    @keyframes blink { 0%,80%,100% { opacity:0.2; } 40% { opacity:1; } }
-    .dot-1 { animation:blink 1.4s infinite 0s; }
-    .dot-2 { animation:blink 1.4s infinite 0.2s; }
-    .dot-3 { animation:blink 1.4s infinite 0.4s; }
+    .history-item:hover {
+      background: #f4f7f5;
+      border-color: #e6ede9;
+    }
 
-    @keyframes pulse-ring { 0% { transform:scale(1); opacity:0.6; } 100% { transform:scale(1.6); opacity:0; } }
-    #mic-btn.listening .mic-ring { animation:pulse-ring 1s ease-out infinite; }
-    #mic-btn.listening { background:#e6ede9 !important; border-color:#557f6d !important; }
-    #mic-btn.listening svg { color:#557f6d; }
+    .history-item.active {
+      background: #e6ede9;
+      border-color: #ccdbd3;
+    }
 
-    .ai-prose p { margin-bottom:0.5em; }
-    .ai-prose ul,.ai-prose ol { margin-left:1.25em; margin-bottom:0.5em; }
-    .ai-prose li { list-style:disc; margin-bottom:0.2em; }
-    .ai-prose strong { font-weight:600; }
-    .ai-prose code { background:#e8eaed; padding:0.1em 0.35em; border-radius:4px; font-size:0.82em; font-family:'SF Mono','Fira Code',monospace; }
-    .ai-prose pre { background:#f1f3f5; padding:0.75em 1em; border-radius:6px; overflow-x:auto; margin-bottom:0.75em; }
-    .ai-prose pre code { background:transparent; padding:0; }
-    .ai-prose h1,.ai-prose h2,.ai-prose h3 { font-weight:600; margin-top:0.75em; margin-bottom:0.35em; }
-    .ai-prose h1 { font-size:1.15em; } .ai-prose h2 { font-size:1.05em; } .ai-prose h3 { font-size:0.95em; }
-    .ai-prose table { width:100%; border-collapse:collapse; margin-bottom:0.75em; font-size:0.85em; }
-    .ai-prose th,.ai-prose td { border:1px solid #d1d5db; padding:0.4em 0.65em; text-align:left; }
-    .ai-prose th { background:#f4f7f5; font-weight:600; }
-    .ai-prose blockquote { border-left:3px solid #ccdbd3; padding-left:0.75em; color:#64748b; margin-bottom:0.5em; }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
 
-    textarea:disabled { opacity:0.55; cursor:not-allowed; }
-    #slowstart-banner { display:none; animation:fadeInUp 0.4s ease-out forwards; }
-    #slowstart-banner.visible { display:flex; }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .msg-animate {
+      animation: fadeInUp 0.3s ease-out forwards;
+    }
+
+    @keyframes blink {
+
+      0%,
+      80%,
+      100% {
+        opacity: 0.2;
+      }
+
+      40% {
+        opacity: 1;
+      }
+    }
+
+    .dot-1 {
+      animation: blink 1.4s infinite 0s;
+    }
+
+    .dot-2 {
+      animation: blink 1.4s infinite 0.2s;
+    }
+
+    .dot-3 {
+      animation: blink 1.4s infinite 0.4s;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(1);
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    #mic-btn.listening .mic-ring {
+      animation: pulse-ring 1s ease-out infinite;
+    }
+
+    #mic-btn.listening {
+      background: #e6ede9 !important;
+      border-color: #557f6d !important;
+    }
+
+    #mic-btn.listening svg {
+      color: #557f6d;
+    }
+
+    .ai-prose p {
+      margin-bottom: 0.5em;
+    }
+
+    .ai-prose ul,
+    .ai-prose ol {
+      margin-left: 1.25em;
+      margin-bottom: 0.5em;
+    }
+
+    .ai-prose li {
+      list-style: disc;
+      margin-bottom: 0.2em;
+    }
+
+    .ai-prose strong {
+      font-weight: 600;
+    }
+
+    .ai-prose code {
+      background: #e8eaed;
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+      font-size: 0.82em;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .ai-prose pre {
+      background: #f1f3f5;
+      padding: 0.75em 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 0.75em;
+    }
+
+    .ai-prose pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .ai-prose h1,
+    .ai-prose h2,
+    .ai-prose h3 {
+      font-weight: 600;
+      margin-top: 0.75em;
+      margin-bottom: 0.35em;
+    }
+
+    .ai-prose h1 {
+      font-size: 1.15em;
+    }
+
+    .ai-prose h2 {
+      font-size: 1.05em;
+    }
+
+    .ai-prose h3 {
+      font-size: 0.95em;
+    }
+
+    .ai-prose table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0.75em;
+      font-size: 0.85em;
+    }
+
+    .ai-prose th,
+    .ai-prose td {
+      border: 1px solid #d1d5db;
+      padding: 0.4em 0.65em;
+      text-align: left;
+    }
+
+    .ai-prose th {
+      background: #f4f7f5;
+      font-weight: 600;
+    }
+
+    .ai-prose blockquote {
+      border-left: 3px solid #ccdbd3;
+      padding-left: 0.75em;
+      color: #64748b;
+      margin-bottom: 0.5em;
+    }
+
+    textarea:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    #slowstart-banner {
+      display: none;
+      animation: fadeInUp 0.4s ease-out forwards;
+    }
+
+    #slowstart-banner.visible {
+      display: flex;
+    }
   </style>
 </head>
+
 <body class="h-screen antialiased flex flex-col">
 
   <!-- Sidebar overlay -->
@@ -90,24 +293,35 @@
   <aside id="sidebar">
     <div class="flex items-center justify-between px-4 pt-5 pb-3 border-b border-stone-100">
       <p class="text-xs font-semibold tracking-widest uppercase text-stone-400">History</p>
-      <button onclick="closeSidebar()" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
-        <svg class="w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      <button onclick="closeSidebar()"
+        class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
+        <svg class="w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </div>
     <div id="history-list" class="flex-1 overflow-y-auto px-3 py-3 space-y-1"></div>
     <div class="px-3 py-3 border-t border-stone-100 space-y-1">
-      <button onclick="newSession()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-sage-700 bg-sage-50 hover:bg-sage-100 transition-colors flex items-center gap-2">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      <button onclick="newSession()"
+        class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-sage-700 bg-sage-50 hover:bg-sage-100 transition-colors flex items-center gap-2">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
         </svg>
         New conversation
       </button>
-      <button onclick="clearAllHistory()" class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+      <button onclick="clearAllHistory()"
+        class="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+          <path d="M9 6V4h6v2" />
         </svg>
         Clear all history
       </button>
@@ -118,16 +332,23 @@
   <header class="flex-shrink-0 bg-white/90 backdrop-blur border-b border-stone-200/70 z-30">
     <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <button onclick="toggleSidebar()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors" title="Chat history">
-          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        <button onclick="toggleSidebar()"
+          class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors"
+          title="Chat history">
+          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
         <div class="w-px h-5 bg-stone-200 mx-1"></div>
         <div class="w-7 h-7 rounded-lg bg-sage-700 flex items-center justify-center">
-          <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/>
-            <path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/>
+          <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z" />
+            <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+            <line x1="12" y1="19" x2="12" y2="22" />
           </svg>
         </div>
         <div>
@@ -136,23 +357,29 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <div id="status-indicator" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200 transition-all duration-500">
+        <div id="status-indicator"
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200 transition-all duration-500">
           <span class="relative flex h-2 w-2">
-            <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-400 opacity-50"></span>
+            <span id="status-ping"
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-stone-400 opacity-50"></span>
             <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-stone-400"></span>
           </span>
           <span id="status-text" class="text-[10px] font-medium text-stone-500">Checking…</span>
         </div>
-        <a href="/dashboard" title="Document dashboard" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
-          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
+        <a href="/dashboard" title="Document dashboard"
+          class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
+          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
           </svg>
         </a>
-        <a href="/home" title="Back to home" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
-          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
+        <a href="/home" title="Back to home"
+          class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors">
+          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </a>
       </div>
@@ -160,12 +387,17 @@
   </header>
 
   <!-- Slow-start banner -->
-  <div id="slowstart-banner" class="flex-shrink-0 items-center gap-2.5 bg-amber-50 border-b border-amber-200/60 px-5 py-2.5">
-    <svg class="w-4 h-4 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  <div id="slowstart-banner"
+    class="flex-shrink-0 items-center gap-2.5 bg-amber-50 border-b border-amber-200/60 px-5 py-2.5">
+    <svg class="w-4 h-4 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
     <p class="text-[11.5px] text-amber-700 leading-relaxed">
-      The backend is waking up from sleep — this first response may take up to 60 seconds. Subsequent requests will be fast.
+      The backend is waking up from sleep — this first response may take up to 60 seconds. Subsequent requests will be
+      fast.
     </p>
   </div>
 
@@ -182,10 +414,12 @@
           <button id="mic-btn" onclick="toggleVoice()" title="Voice input"
             class="relative w-[46px] h-[46px] rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 flex items-center justify-center transition-all duration-200">
             <span class="mic-ring absolute inset-0 rounded-xl bg-sage-300 opacity-0"></span>
-            <svg class="w-[18px] h-[18px] text-stone-500 relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+            <svg class="w-[18px] h-[18px] text-stone-500 relative z-10" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
             </svg>
           </button>
         </div>
@@ -194,36 +428,40 @@
             placeholder="Ask about patients, regimens, drug stock, indicators…"
             class="w-full resize-none rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sage-300/60 focus:border-sage-300 transition-shadow duration-200"
             style="max-height:140px;"></textarea>
-          <span id="char-counter" class="absolute bottom-2 right-3 text-[10px] text-stone-300 pointer-events-none hidden"></span>
+          <span id="char-counter"
+            class="absolute bottom-2 right-3 text-[10px] text-stone-300 pointer-events-none hidden"></span>
         </div>
         <button id="send-btn" onclick="sendMessage()"
           class="flex-shrink-0 h-[46px] w-[46px] rounded-xl bg-sage-700 hover:bg-sage-800 active:scale-95 text-white flex items-center justify-center transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
           </svg>
         </button>
       </div>
-      <p class="text-[10.5px] text-stone-400 mt-2 text-center">AI-generated responses may not always be accurate. Verify critical queries independently.</p>
+      <p class="text-[10.5px] text-stone-400 mt-2 text-center">AI-generated responses may not always be accurate. Verify
+        critical queries independently.</p>
     </div>
   </footer>
 
   <script>
-    const API_BASE = 'https://YOUR_HF_SPACE_URL';
+    const API_BASE = 'https://Lulwi-pmtpt-clinical-api.hf.space'
 
-    const chatArea    = document.getElementById('chat-area');
-    const messagesEl  = document.getElementById('messages');
-    const inputEl     = document.getElementById('user-input');
-    const sendBtn     = document.getElementById('send-btn');
-    const micBtn      = document.getElementById('mic-btn');
+    const chatArea = document.getElementById('chat-area');
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
     const charCounter = document.getElementById('char-counter');
-    const slowBanner  = document.getElementById('slowstart-banner');
-    const sidebar     = document.getElementById('sidebar');
+    const slowBanner = document.getElementById('slowstart-banner');
+    const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     const historyList = document.getElementById('history-list');
     const statusIndicator = document.getElementById('status-indicator');
-    const statusDot   = document.getElementById('status-dot');
-    const statusPing  = document.getElementById('status-ping');
-    const statusText  = document.getElementById('status-text');
+    const statusDot = document.getElementById('status-dot');
+    const statusPing = document.getElementById('status-ping');
+    const statusText = document.getElementById('status-text');
 
     let isProcessing = false;
     let slowTimer = null;
@@ -232,7 +470,7 @@
     let currentSessionId = null;
 
     const SESSIONS_KEY = 'pmtpt_sessions';
-    const SESSION_PFX  = 'pmtpt_sess_';
+    const SESSION_PFX = 'pmtpt_sess_';
 
     function getSessions() {
       try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
@@ -338,7 +576,7 @@
       if (m < 1) return 'Just now'; if (m < 60) return `${m}m ago`;
       const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
       const d = Math.floor(h / 24); if (d < 7) return `${d}d ago`;
-      return new Date(ts).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      return new Date(ts).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
     }
 
     function toggleSidebar() {
@@ -375,7 +613,7 @@
     }
 
     function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
     function renderMarkdown(text) {
@@ -402,7 +640,7 @@
       return html;
     }
 
-    function formatTime() { return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }
+    function formatTime() { return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
     function _addUserBubble(text, time, animate) {
       const div = document.createElement('div');
@@ -466,7 +704,7 @@
     function removeTypingIndicator() { document.getElementById('typing-indicator')?.remove(); }
 
     function setProcessing(state) { isProcessing = state; sendBtn.disabled = state; inputEl.disabled = state; }
-    function scrollToBottom() { requestAnimationFrame(() => chatArea.scrollTo({ top: chatArea.scrollHeight, behavior:'smooth' })); }
+    function scrollToBottom() { requestAnimationFrame(() => chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' })); }
     function useQuestion(text) { inputEl.value = text; inputEl.dispatchEvent(new Event('input')); sendMessage(); }
 
     async function sendMessage() {
@@ -516,10 +754,10 @@
 
     function setStatus(state) {
       const map = {
-        connected: { dot:'bg-sage-500', ping:'bg-sage-400', bg:'bg-sage-50 border-sage-200/60', text:'text-sage-700', label:'System Connected' },
-        degraded:  { dot:'bg-amber-500', ping:'bg-amber-400', bg:'bg-amber-50 border-amber-200/60', text:'text-amber-700', label:'Degraded' },
-        offline:   { dot:'bg-red-400', ping:'bg-red-300', bg:'bg-red-50 border-red-200/60', text:'text-red-600', label:'Offline' },
-        checking:  { dot:'bg-stone-400', ping:'bg-stone-400', bg:'bg-stone-100 border-stone-200', text:'text-stone-500', label:'Checking…' },
+        connected: { dot: 'bg-sage-500', ping: 'bg-sage-400', bg: 'bg-sage-50 border-sage-200/60', text: 'text-sage-700', label: 'System Connected' },
+        degraded: { dot: 'bg-amber-500', ping: 'bg-amber-400', bg: 'bg-amber-50 border-amber-200/60', text: 'text-amber-700', label: 'Degraded' },
+        offline: { dot: 'bg-red-400', ping: 'bg-red-300', bg: 'bg-red-50 border-red-200/60', text: 'text-red-600', label: 'Offline' },
+        checking: { dot: 'bg-stone-400', ping: 'bg-stone-400', bg: 'bg-stone-100 border-stone-200', text: 'text-stone-500', label: 'Checking…' },
       };
       const s = map[state] || map.checking;
       statusIndicator.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all duration-500 ${s.bg}`;
@@ -531,33 +769,34 @@
 
     (function initVoice() {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) { micBtn.style.opacity='0.4'; micBtn.style.cursor='not-allowed'; micBtn.onclick=()=>alert('Voice input requires Chrome or Edge.'); return; }
+      if (!SR) { micBtn.style.opacity = '0.4'; micBtn.style.cursor = 'not-allowed'; micBtn.onclick = () => alert('Voice input requires Chrome or Edge.'); return; }
       recognition = new SR();
       recognition.lang = 'en-IN'; recognition.interimResults = true; recognition.continuous = false; recognition.maxAlternatives = 1;
       let finalTranscript = '';
-      recognition.onstart = () => { isListening=true; finalTranscript=''; micBtn.classList.add('listening'); micBtn.title='Listening… click to stop'; };
+      recognition.onstart = () => { isListening = true; finalTranscript = ''; micBtn.classList.add('listening'); micBtn.title = 'Listening… click to stop'; };
       recognition.onresult = (e) => {
-        let interim=''; finalTranscript='';
-        for (let i=e.resultIndex;i<e.results.length;i++) { if (e.results[i].isFinal) finalTranscript+=e.results[i][0].transcript; else interim+=e.results[i][0].transcript; }
-        inputEl.value=finalTranscript||interim; inputEl.dispatchEvent(new Event('input'));
+        let interim = ''; finalTranscript = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript; else interim += e.results[i][0].transcript; }
+        inputEl.value = finalTranscript || interim; inputEl.dispatchEvent(new Event('input'));
       };
-      recognition.onend = () => { isListening=false; micBtn.classList.remove('listening'); micBtn.title='Voice input'; if (finalTranscript.trim()) { inputEl.value=finalTranscript.trim(); inputEl.dispatchEvent(new Event('input')); inputEl.focus(); } };
-      recognition.onerror = (e) => { isListening=false; micBtn.classList.remove('listening'); };
+      recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.title = 'Voice input'; if (finalTranscript.trim()) { inputEl.value = finalTranscript.trim(); inputEl.dispatchEvent(new Event('input')); inputEl.focus(); } };
+      recognition.onerror = (e) => { isListening = false; micBtn.classList.remove('listening'); };
     })();
 
-    function toggleVoice() { if (!recognition) return; if (isListening) recognition.stop(); else { try { recognition.start(); } catch(e){} } }
+    function toggleVoice() { if (!recognition) return; if (isListening) recognition.stop(); else { try { recognition.start(); } catch (e) { } } }
 
     inputEl.addEventListener('input', () => {
-      inputEl.style.height='auto'; inputEl.style.height=Math.min(inputEl.scrollHeight,140)+'px';
-      const len=inputEl.value.length;
-      if (len>800) { charCounter.textContent=`${len}/1000`; charCounter.classList.remove('hidden'); charCounter.classList.toggle('text-red-400',len>=950); charCounter.classList.toggle('text-stone-300',len<950); }
+      inputEl.style.height = 'auto'; inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+      const len = inputEl.value.length;
+      if (len > 800) { charCounter.textContent = `${len}/1000`; charCounter.classList.remove('hidden'); charCounter.classList.toggle('text-red-400', len >= 950); charCounter.classList.toggle('text-stone-300', len < 950); }
       else { charCounter.classList.add('hidden'); }
     });
 
-    inputEl.addEventListener('keydown', (e) => { if (e.key==='Enter'&&!e.shiftKey&&!isProcessing) { e.preventDefault(); sendMessage(); } });
+    inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !isProcessing) { e.preventDefault(); sendMessage(); } });
 
     newSession();
     checkHealth();
   </script>
 </body>
+
 </html>
