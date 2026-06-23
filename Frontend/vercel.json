@@ -1,0 +1,16 @@
+{
+    "rewrites": [
+        {
+            "source": "/chat",
+            "destination": "/Frontend/chat.html"
+        },
+        {
+            "source": "/dashboard",
+            "destination": "/Frontend/dashboard.html"
+        },
+        {
+            "source": "/",
+            "destination": "/Frontend/index.html"
+        }
+    ]
+}
