@@ -1,0 +1,26 @@
+# Web framework
+fastapi
+uvicorn[standard]
+
+# Database
+psycopg2-binary
+pgvector               # psycopg2 adapter for vector type
+
+# PDF extraction
+pymupdf                # fitz — fast, accurate PDF text extraction
+
+# Embeddings (local, no API cost)
+sentence-transformers  # all-MiniLM-L6-v2
+torch                  # required by sentence-transformers (CPU-only fine)
+
+# LLM + Agent
+langchain-groq
+langgraph
+langchain-community
+
+# Utilities
+python-dotenv
+tenacity               # retry logic for LLM calls
+slowapi                # rate limiting
+python-multipart       # required for FastAPI file uploads (UploadFile)
+pydantic

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PMTPT Clinical AI Assistant</title>
+  <meta name="description" content="PMTPT Clinical AI — query India's TB Preventive Treatment database in plain English." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"DM Sans"', 'ui-sans-serif', 'sans-serif'],
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+          },
+          colors: {
+            sage: { 50:'#f4f7f5',100:'#e6ede9',200:'#ccdbd3',300:'#a5c0b1',400:'#779f8b',500:'#557f6d',600:'#426357',700:'#364f46',800:'#2d3f39',900:'#273530' },
+            stone: { 50:'#fafaf9',100:'#f5f5f4',200:'#e7e5e4',300:'#d6d3d1',400:'#a8a29e',500:'#78716c',600:'#57534e',700:'#44403c',800:'#292524',900:'#1c1917' },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background: #f4f7f5; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #ccdbd3; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a5c0b1; }
+
+    .landing-rule { height:1px; background:linear-gradient(90deg,transparent,#ccdbd3 30%,#ccdbd3 70%,transparent); }
+
+    .capability-card {
+      background:#ffffff; border:1px solid #e6ede9; border-radius:12px;
+      padding:1.25rem 1.5rem; transition:border-color 0.2s ease,box-shadow 0.2s ease;
+    }
+    .capability-card:hover { border-color:#a5c0b1; box-shadow:0 2px 12px rgba(85,127,109,0.08); }
+
+    .pill-tag {
+      display:inline-flex; align-items:center; gap:5px; font-size:0.7rem;
+      font-weight:500; letter-spacing:0.04em; text-transform:uppercase;
+      color:#557f6d; background:#e6ede9; border-radius:100px; padding:0.25rem 0.65rem;
+    }
+
+    .cta-btn {
+      background:#364f46; color:#ffffff; border:none; border-radius:10px;
+      font-family:'DM Sans',sans-serif; font-weight:500; font-size:0.9rem;
+      padding:0.8rem 2rem; cursor:pointer; transition:background 0.2s ease,transform 0.15s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .cta-btn:hover { background:#2d3f39; transform:translateY(-1px); }
+    .cta-btn:active { transform:translateY(0); }
+    .cta-btn-outline {
+      background:transparent; color:#364f46; border:1.5px solid #a5c0b1; border-radius:10px;
+      font-family:'DM Sans',sans-serif; font-weight:500; font-size:0.9rem;
+      padding:0.8rem 2rem; cursor:pointer; transition:all 0.2s ease;
+      display:inline-flex; align-items:center; gap:8px;
+    }
+    .cta-btn-outline:hover { background:#e6ede9; border-color:#557f6d; }
+
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .land-1 { animation:fadeInUp 0.5s ease-out 0.1s both; }
+    .land-2 { animation:fadeInUp 0.5s ease-out 0.2s both; }
+    .land-3 { animation:fadeInUp 0.5s ease-out 0.3s both; }
+    .land-4 { animation:fadeInUp 0.5s ease-out 0.4s both; }
+    .land-5 { animation:fadeInUp 0.5s ease-out 0.5s both; }
+    .land-6 { animation:fadeInUp 0.5s ease-out 0.6s both; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <div class="max-w-2xl mx-auto px-6 py-14 flex flex-col min-h-screen">
+
+    <!-- Logo + badge -->
+    <div class="land-1 flex items-center gap-3 mb-10">
+      <div class="w-9 h-9 rounded-xl bg-sage-700 flex items-center justify-center flex-shrink-0">
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5Z"/>
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+        </svg>
+      </div>
+      <div>
+        <p class="text-[11px] font-medium tracking-widest uppercase text-sage-500 leading-none">NTEP · India</p>
+        <h1 class="text-sm font-semibold text-stone-700 leading-tight">PMTPT Clinical AI</h1>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="land-2 mb-2">
+      <h2 class="font-serif text-4xl text-stone-800 leading-snug mb-4">
+        Ask your TB database<br/>
+        <span class="italic text-sage-600">in plain English.</span>
+      </h2>
+      <p class="text-stone-500 text-base leading-relaxed max-w-lg">
+        PMTPT Clinical AI lets healthcare workers and programme managers query the national
+        <strong class="font-medium text-stone-600">Tuberculosis Preventive Treatment</strong> database
+        without writing a single line of SQL. Type a question, get a clinical answer.
+      </p>
+    </div>
+
+    <div class="land-3 landing-rule my-7"></div>
+
+    <!-- What it does -->
+    <div class="land-4 mb-7">
+      <p class="text-[11px] font-medium tracking-widest uppercase text-stone-400 mb-4">What you can do</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+        <div class="capability-card">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-sage-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-stone-700 mb-0.5">Patient Tracking</p>
+              <p class="text-xs text-stone-400 leading-relaxed">Look up active enrolments, treatment status, adherence rates, and follow-up records by district, facility, or patient.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="capability-card">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-sage-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-stone-700 mb-0.5">Regimen & Drug Info</p>
+              <p class="text-xs text-stone-400 leading-relaxed">Query 6H, 3HP, 1HP, 3HR regimens — dosing, duration, contraindications, drug interactions, and adverse event thresholds.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="capability-card">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-sage-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-stone-700 mb-0.5">Programme Indicators</p>
+              <p class="text-xs text-stone-400 leading-relaxed">Generate care cascade reports, completion rates, interruption counts, and monitoring indicators per district or facility.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="capability-card">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-sage-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="2"/>
+                <path d="M16 8h4l3 5v3h-7V8z"/>
+                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-stone-700 mb-0.5">Supply Chain</p>
+              <p class="text-xs text-stone-400 leading-relaxed">Check drug stock levels, batch details, expiry status, and replenishment data across facilities.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="land-5 flex items-start gap-2.5 bg-white border border-stone-200 rounded-xl px-4 py-3.5 mb-8">
+      <svg class="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p class="text-xs text-stone-500 leading-relaxed">
+        This tool queries the PMTPT database using AI-generated responses based on India's 2021 NTEP guidelines.
+        It is intended for programme management and reporting use.
+        <strong class="font-medium text-stone-600">Always verify critical clinical decisions with the treating physician.</strong>
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div class="land-6 flex flex-wrap items-center gap-3 pb-10">
+      <a href="/chat" class="cta-btn">
+        Start Querying
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+      <a href="/dashboard" class="cta-btn-outline">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Manage Documents
+      </a>
+      <p class="text-xs text-stone-400">No login required · Read-only access</p>
+    </div>
+
+  </div>
+</body>
+</html>

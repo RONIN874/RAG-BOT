@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info
+dist
+build
+
+# Local env
+.env
+.env.*
+venv
+.venv
+env
+
+# Dev/test artifacts
+*.md
+tests/
+.pytest_cache
+.coverage
+htmlcov
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local model cache (re-downloaded at build time inside Docker)
+models/
