@@ -28,47 +28,128 @@
     };
   </script>
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #f4f7f5; }
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #ccdbd3; border-radius: 10px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #f4f7f5;
+    }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .fade-in { animation: fadeInUp 0.35s ease-out both; }
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { animation: spin 0.8s linear infinite; }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccdbd3;
+      border-radius: 10px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.35s ease-out both;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .spinner {
+      animation: spin 0.8s linear infinite;
+    }
 
     .drop-zone {
-      border: 2px dashed #ccdbd3; border-radius: 14px; transition: all 0.2s ease;
+      border: 2px dashed #ccdbd3;
+      border-radius: 14px;
+      transition: all 0.2s ease;
       background: #ffffff;
     }
-    .drop-zone.dragging { border-color: #557f6d; background: #f4f7f5; }
+
+    .drop-zone.dragging {
+      border-color: #557f6d;
+      background: #f4f7f5;
+    }
 
     .doc-card {
-      background: #ffffff; border: 1px solid #e7e5e4; border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #e7e5e4;
+      border-radius: 12px;
       transition: box-shadow 0.2s ease, border-color 0.2s ease;
     }
-    .doc-card:hover { border-color: #ccdbd3; box-shadow: 0 2px 12px rgba(85, 127, 109, 0.07); }
+
+    .doc-card:hover {
+      border-color: #ccdbd3;
+      box-shadow: 0 2px 12px rgba(85, 127, 109, 0.07);
+    }
 
     .badge {
-      display: inline-flex; align-items: center; font-size: 0.68rem; font-weight: 500;
-      letter-spacing: 0.03em; border-radius: 100px; padding: 0.2rem 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      border-radius: 100px;
+      padding: 0.2rem 0.6rem;
     }
-    .badge-sage { color: #426357; background: #e6ede9; }
-    .badge-stone { color: #57534e; background: #f5f5f4; }
 
-    .progress-bar { height: 3px; background: #e6ede9; border-radius: 100px; overflow: hidden; }
-    .progress-fill { height: 100%; background: #557f6d; border-radius: 100px; transition: width 0.4s ease; }
+    .badge-sage {
+      color: #426357;
+      background: #e6ede9;
+    }
+
+    .badge-stone {
+      color: #57534e;
+      background: #f5f5f4;
+    }
+
+    .progress-bar {
+      height: 3px;
+      background: #e6ede9;
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #557f6d;
+      border-radius: 100px;
+      transition: width 0.4s ease;
+    }
 
     .toast {
-      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100;
-      background: #ffffff; border: 1px solid #e7e5e4; border-radius: 12px;
-      padding: 0.85rem 1.25rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      display: flex; align-items: center; gap: 0.75rem;
-      animation: fadeInUp 0.3s ease-out both; max-width: 340px;
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      background: #ffffff;
+      border: 1px solid #e7e5e4;
+      border-radius: 12px;
+      padding: 0.85rem 1.25rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fadeInUp 0.3s ease-out both;
+      max-width: 340px;
     }
-    .toast.hidden { display: none; }
+
+    .toast.hidden {
+      display: none;
+    }
   </style>
 </head>
 
@@ -79,10 +160,12 @@
     <div class="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="w-7 h-7 rounded-lg bg-sage-700 flex items-center justify-center">
-          <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <path d="M12 18v-6"/><path d="M9 15h6"/>
+          <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <path d="M12 18v-6" />
+            <path d="M9 15h6" />
           </svg>
         </div>
         <div>
@@ -91,16 +174,20 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a href="/chat" class="flex items-center gap-1.5 text-xs font-medium text-sage-700 bg-sage-50 border border-sage-200/70 hover:bg-sage-100 transition-colors rounded-lg px-3 py-1.5">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        <a href="/chat"
+          class="flex items-center gap-1.5 text-xs font-medium text-sage-700 bg-sage-50 border border-sage-200/70 hover:bg-sage-100 transition-colors rounded-lg px-3 py-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
           Open Chat
         </a>
-        <a href="/" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors" title="Home">
-          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
+        <a href="/" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-stone-100 transition-colors"
+          title="Home">
+          <svg class="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         </a>
       </div>
@@ -126,11 +213,13 @@
           <div id="drop-zone" class="drop-zone p-7 flex flex-col items-center text-center cursor-pointer mb-4"
             onclick="document.getElementById('file-input').click()">
             <div class="w-10 h-10 rounded-xl bg-sage-100 flex items-center justify-center mb-3">
-              <svg class="w-5 h-5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="12" y1="18" x2="12" y2="12"/>
-                <line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/>
+              <svg class="w-5 h-5 text-sage-600" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="12" y2="12" />
+                <line x1="15" y1="15" x2="12" y2="12" />
               </svg>
             </div>
             <p class="text-sm font-medium text-stone-600 mb-0.5">Drop PDF here or click to browse</p>
@@ -139,18 +228,23 @@
           </div>
 
           <!-- Selected file preview -->
-          <div id="file-preview" class="hidden mb-4 flex items-center gap-3 bg-sage-50 border border-sage-200/60 rounded-xl px-4 py-3">
-            <svg class="w-5 h-5 text-sage-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
+          <div id="file-preview"
+            class="hidden mb-4 flex items-center gap-3 bg-sage-50 border border-sage-200/60 rounded-xl px-4 py-3">
+            <svg class="w-5 h-5 text-sage-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
             </svg>
             <div class="min-w-0 flex-1">
               <p id="file-name" class="text-xs font-medium text-stone-700 truncate"></p>
               <p id="file-size" class="text-[10px] text-stone-400 mt-0.5"></p>
             </div>
-            <button onclick="clearFile()" class="w-5 h-5 rounded flex items-center justify-center text-stone-400 hover:text-red-400 flex-shrink-0">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <button onclick="clearFile()"
+              class="w-5 h-5 rounded flex items-center justify-center text-stone-400 hover:text-red-400 flex-shrink-0">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           </div>
@@ -158,7 +252,8 @@
           <!-- Category select -->
           <div class="mb-3">
             <label class="block text-xs font-medium text-stone-500 mb-1.5">Category</label>
-            <select id="category-select" class="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-sage-300/60 focus:border-sage-300">
+            <select id="category-select"
+              class="w-full rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-sage-300/60 focus:border-sage-300">
               <option value="general">General</option>
               <option value="treatment_protocol">Treatment Protocol</option>
               <option value="lab_report">Lab Report</option>
@@ -182,10 +277,11 @@
           <!-- Upload button -->
           <button id="upload-btn" onclick="uploadPDF()" disabled
             class="w-full rounded-xl bg-sage-700 hover:bg-sage-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 transition-all duration-150 flex items-center justify-center gap-2">
-            <svg id="upload-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+            <svg id="upload-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <span id="upload-label">Upload & Index</span>
           </button>
@@ -196,11 +292,13 @@
       <div class="lg:col-span-3 fade-in">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-semibold text-stone-700">Indexed Documents</h3>
-          <button onclick="loadDocuments()" class="text-xs text-stone-400 hover:text-sage-700 transition-colors flex items-center gap-1">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="23 4 23 10 17 10"/>
-              <polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          <button onclick="loadDocuments()"
+            class="text-xs text-stone-400 hover:text-sage-700 transition-colors flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
             </svg>
             Refresh
           </button>
@@ -208,17 +306,20 @@
 
         <!-- Loading state -->
         <div id="docs-loading" class="flex items-center justify-center py-12">
-          <svg class="spinner w-5 h-5 text-sage-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+          <svg class="spinner w-5 h-5 text-sage-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
         </div>
 
         <!-- Empty state -->
-        <div id="docs-empty" class="hidden flex flex-col items-center text-center py-14 bg-white border border-stone-200 rounded-2xl">
+        <div id="docs-empty"
+          class="hidden flex flex-col items-center text-center py-14 bg-white border border-stone-200 rounded-2xl">
           <div class="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center mb-3">
-            <svg class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
+            <svg class="w-5 h-5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
             </svg>
           </div>
           <p class="text-sm font-medium text-stone-600 mb-1">No documents yet</p>
@@ -239,7 +340,7 @@
   </div>
 
   <script>
-    const API_BASE = 'https://Lulwi-pmtpt-clinical-api.hf.space';
+    const API_BASE = 'https://lulwi-askdoc.hf.space';
     const API_KEY = '';
 
     let selectedFile = null;
@@ -445,4 +546,5 @@
     loadDocuments();
   </script>
 </body>
+
 </html>
