@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat · PMTPT Clinical AI</title>
+  <title>Chat · AskDoc</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -352,8 +352,8 @@
           </svg>
         </div>
         <div>
-          <h1 class="text-sm font-semibold text-stone-700 leading-none tracking-tight">PMTPT Clinical AI</h1>
-          <p class="text-[10px] text-stone-400 font-medium mt-0.5">TB Preventive Treatment · India</p>
+          <h1 class="text-sm font-semibold text-stone-700 leading-none tracking-tight">AskDoc</h1>
+          <p class="text-[10px] text-stone-400 font-medium mt-0.5">Ask questions about your documents</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -425,7 +425,7 @@
         </div>
         <div class="flex-1 relative">
           <textarea id="user-input" rows="1" maxlength="1000"
-            placeholder="Ask about patients, regimens, drug stock, indicators…"
+            placeholder="Ask a question about your uploaded documents…"
             class="w-full resize-none rounded-xl border border-stone-200 bg-stone-50/80 px-4 py-3 text-sm text-stone-700 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-sage-300/60 focus:border-sage-300 transition-shadow duration-200"
             style="max-height:140px;"></textarea>
           <span id="char-counter"
@@ -469,8 +469,8 @@
     let isListening = false;
     let currentSessionId = null;
 
-    const SESSIONS_KEY = 'pmtpt_sessions';
-    const SESSION_PFX = 'pmtpt_sess_';
+    const SESSIONS_KEY = 'askdoc_sessions';
+    const SESSION_PFX = 'askdoc_sess_';
 
     function getSessions() {
       try { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); } catch { return []; }
@@ -597,13 +597,7 @@
           </svg>
         </div>
         <h2 class="text-base font-semibold text-stone-700 mb-1.5">What would you like to know?</h2>
-        <p class="text-sm text-stone-400 max-w-md leading-relaxed">Ask in plain English. I'll search the clinical PDF database and return relevant answers.</p>
-        <div class="mt-5 flex flex-wrap gap-2 justify-center max-w-lg">
-          <button onclick="useQuestion('How many patients are currently active on TPT?')" class="text-xs text-sage-700 bg-sage-50 border border-sage-200/70 rounded-full px-3.5 py-1.5 hover:bg-sage-100 transition-colors">Active patients on TPT</button>
-          <button onclick="useQuestion('What drugs are used in the 3HP regimen and what are the contraindications?')" class="text-xs text-sage-700 bg-sage-50 border border-sage-200/70 rounded-full px-3.5 py-1.5 hover:bg-sage-100 transition-colors">3HP regimen details</button>
-          <button onclick="useQuestion('Which adverse events require stopping TPT immediately?')" class="text-xs text-sage-700 bg-sage-50 border border-sage-200/70 rounded-full px-3.5 py-1.5 hover:bg-sage-100 transition-colors">Adverse events — stop TPT</button>
-          <button onclick="useQuestion('Show the care cascade summary for all districts')" class="text-xs text-sage-700 bg-sage-50 border border-sage-200/70 rounded-full px-3.5 py-1.5 hover:bg-sage-100 transition-colors">District care cascade</button>
-        </div>`;
+        <p class="text-sm text-stone-400 max-w-md leading-relaxed">Ask in plain English. I'll search your uploaded PDF documents and return relevant answers with source references.</p>`;
       messagesEl.appendChild(card);
     }
 
