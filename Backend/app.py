@@ -143,7 +143,7 @@ async def ask(
     try:
         result = graph.invoke(
             {"user_question": q.question},
-            config={"recursion_limit": 3},
+            config={"recursion_limit": 10},
         )
     except Exception as exc:
         logger.exception("LangGraph invocation failed: %s", exc)

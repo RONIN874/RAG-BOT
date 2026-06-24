@@ -1,43 +1,52 @@
 """
-main.py  LangGraph RAG agent with proper @tool + ToolNode
-=========================================================
-Agent flow (recursion_limit=3, so at most 3 tool calls total):
+main.py  LangGraph RAG agent — Groq SDK direct tool calling
+============================================================
+Bypasses LangChain bind_tools/ToolNode entirely.
+Tools are defined as plain dicts and sent directly to the Groq API,
+exactly like the InferenceClient pattern — model-agnostic and reliable.
+
+Agent flow (max 3 tool call cycles):
 
   START
-    -> check_intent        classifies clinical vs non-clinical
-    -> agent_node          LLM decides which tool to call and with what args
-    -> tool_node           executes the chosen tool (search_chunks or get_adjacent_chunks)
-    -> agent_node          LLM sees tool result, decides to call another tool or stop
-    -> format_response     synthesises all tool results into final markdown answer
+    -> check_intent       classifies clinical vs non-clinical
+    -> retrieve           embeds query, fetches top-5 chunks from pgvector
+    -> generate           Groq API call with tools; LLM decides to call a tool or answer
+    -> execute_tool       runs whichever tool the LLM picked, appends result to messages
+    -> generate           LLM sees tool result, decides again (loop, max 3 cycles)
+    -> format_response    extracts final answer from message history
   END
-
-The LLM autonomously decides:
-  - call 1: always search_chunks (it knows this from the system prompt)
-  - call 2 or 3: get_adjacent_chunks if it needs more context, or stop early
-
-recursion_limit=3 is passed at graph.invoke() time, capping total agent<->tool cycles.
 """
 
 import os
 import json
 import logging
-from typing import TypedDict, Literal, Annotated
-import operator
+from typing import Any, Literal, TypedDict
 
 import psycopg2
 import psycopg2.pool
 from dotenv import load_dotenv
+from groq import Groq
 from sentence_transformers import SentenceTransformer
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-
-from langchain_core.tools import tool
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 from langgraph.graph import StateGraph, START, END
-from langgraph.prebuilt import ToolNode
-from langchain_groq import ChatGroq
 
 load_dotenv()
 logger = logging.getLogger("pmtpt.graph")
+
+
+# ============================================================
+# Groq client  direct SDK, no LangChain wrapper
+# ============================================================
+
+_groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+_retry_decorator = retry(
+    retry=retry_if_exception_type(Exception),
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=8),
+    reraise=True,
+)
 
 
 # ============================================================
@@ -45,7 +54,6 @@ logger = logging.getLogger("pmtpt.graph")
 # ============================================================
 
 RAW_DB_URL = os.getenv("DATABASE_URL", "")
-
 _pool: psycopg2.pool.ThreadedConnectionPool | None = None
 
 def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
@@ -60,7 +68,7 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
 
 
 # ============================================================
-# Embedding model  shared with ingest.py, loaded once per process
+# Embedding model
 # ============================================================
 
 _EMBED_MODEL: SentenceTransformer | None = None
@@ -81,55 +89,77 @@ def _embed_query(text: str) -> list[float]:
 
 
 # ============================================================
-# LLM
+# Tool definitions as plain dicts sent directly to Groq API.
+# No LangChain @tool, no bind_tools — just the raw OpenAI-compatible
+# function schema that Groq expects.
 # ============================================================
 
-llm = ChatGroq(
-    api_key=os.getenv("GROQ_API_KEY"),
-    model_name="llama-3.3-70b-versatile",
-    temperature=0,
-    request_timeout=30,
-)
-
-_retry_decorator = retry(
-    retry=retry_if_exception_type(Exception),
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=1, max=8),
-    reraise=True,
-)
+TOOLS: list[dict[str, Any]] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_chunks",
+            "description": (
+                "Search clinical PDF documents by semantic similarity. "
+                "Always call this first for any clinical question. "
+                "Returns the top matching chunks with source document, page number, and similarity score."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The clinical question or search phrase to look up.",
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "description": "Number of chunks to return (default 5, max 10).",
+                        "default": 5,
+                    },
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_adjacent_chunks",
+            "description": (
+                "Fetch the neighbouring chunks (previous, next, or both) for a specific chunk. "
+                "Call this only when a retrieved chunk appears to cut off mid-sentence or "
+                "the answer clearly continues beyond what search_chunks returned."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "chunk_id": {
+                        "type": "string",
+                        "description": "The UUID of the chunk to expand context around.",
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": ["prev", "next", "both"],
+                        "description": "Which neighbours to fetch (default: both).",
+                        "default": "both",
+                    },
+                },
+                "required": ["chunk_id"],
+            },
+        },
+    },
+]
 
 
 # ============================================================
-# Agent state
+# Tool executor  plain Python functions, no LangChain ToolNode.
+# Each function returns a plain string that goes back to the LLM
+# as a tool message.
 # ============================================================
 
-class AgentState(TypedDict):
-    user_question:      str
-    is_clinical:        bool
-    messages:           Annotated[list, operator.add]   # full message history for the agent loop
-    formatted_response: str
-    error:              str
-
-
-# ============================================================
-# Tool 1: search_chunks
-# The LLM will always call this first.
-# It embeds the query, runs cosine similarity via pgvector, returns top-k chunks.
-# ============================================================
-
-@tool
-def search_chunks(query: str, top_k: int = 5) -> str:
-    """
-    Search clinical PDF documents by semantic similarity.
-    Always call this first for any clinical question.
-    Returns the top matching chunks with their source document, page number, and similarity score.
-
-    Args:
-        query:  the clinical question or search phrase to look up
-        top_k:  number of chunks to return (default 5, max 10)
-    """
-    top_k = min(top_k, 10)
-    query_vec = _embed_query(query)
+def _exec_search_chunks(query: str, top_k: int = 5) -> str:
+    top_k = min(int(top_k), 10)
+    query_vec   = _embed_query(query)
     vec_literal = "[" + ",".join(str(v) for v in query_vec) + "]"
 
     sql = """
@@ -160,15 +190,13 @@ def search_chunks(query: str, top_k: int = 5) -> str:
             return "No relevant chunks found in the indexed documents."
 
         chunks = [dict(zip(cols, row)) for row in rows]
-
-        result_lines = []
+        parts  = []
         for c in chunks:
-            result_lines.append(
-                f"[chunk_id: {c['chunk_id']} | {c['filename']} | page {c['page_number']} "
-                f"| similarity: {c['similarity']}]\n{c['chunk_text']}"
+            parts.append(
+                f"[chunk_id: {c['chunk_id']} | {c['filename']} | "
+                f"page {c['page_number']} | similarity: {c['similarity']}]\n{c['chunk_text']}"
             )
-
-        return "\n\n===\n\n".join(result_lines)
+        return "\n\n===\n\n".join(parts)
 
     except Exception as e:
         logger.exception("search_chunks failed: %s", e)
@@ -177,25 +205,7 @@ def search_chunks(query: str, top_k: int = 5) -> str:
         pool.putconn(conn)
 
 
-# ============================================================
-# Tool 2: get_adjacent_chunks
-# The LLM calls this only when a retrieved chunk cuts off mid-sentence
-# or when it needs surrounding context to complete an answer.
-# ============================================================
-
-@tool
-def get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
-    """
-    Fetch the neighbouring chunks (previous, next, or both) for a specific chunk.
-    Call this only when a retrieved chunk appears to cut off mid-sentence or
-    the answer clearly continues beyond what was returned by search_chunks.
-
-    Args:
-        chunk_id:   the UUID of the chunk you want to expand context around
-        direction:  'prev' to get the chunk before it,
-                    'next' to get the chunk after it,
-                    'both' to get both neighbours (default)
-    """
+def _exec_get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
     if direction not in ("prev", "next", "both"):
         direction = "both"
 
@@ -203,7 +213,6 @@ def get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
     conn = pool.getconn()
     try:
         cur = conn.cursor()
-
         cur.execute(
             "SELECT document_id, chunk_index FROM document_chunks WHERE id = %s",
             (chunk_id,),
@@ -238,7 +247,7 @@ def get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
                 d.filename,
                 COALESCE(dc.label, 'general') AS category
             FROM document_chunks ck
-            JOIN clinical_documents d   ON d.id  = ck.document_id
+            JOIN clinical_documents d    ON d.id  = ck.document_id
             LEFT JOIN document_categories dc ON dc.id = d.category_id
             WHERE ck.document_id = %s
               AND ck.chunk_index IN ({placeholders})
@@ -253,14 +262,12 @@ def get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
         if not rows:
             return "No adjacent chunks found."
 
-        chunks = [dict(zip(cols, row)) for row in rows]
-        result_lines = []
-        for c in chunks:
-            result_lines.append(
+        parts = []
+        for c in [dict(zip(cols, r)) for r in rows]:
+            parts.append(
                 f"[chunk_id: {c['chunk_id']} | {c['filename']} | page {c['page_number']}]\n{c['chunk_text']}"
             )
-
-        return "\n\n===\n\n".join(result_lines)
+        return "\n\n===\n\n".join(parts)
 
     except Exception as e:
         logger.exception("get_adjacent_chunks failed: %s", e)
@@ -269,29 +276,53 @@ def get_adjacent_chunks(chunk_id: str, direction: str = "both") -> str:
         pool.putconn(conn)
 
 
+def _execute_tool(name: str, arguments: dict[str, Any]) -> str:
+    """Route a tool call to the correct executor function."""
+    try:
+        if name == "search_chunks":
+            return _exec_search_chunks(
+                query=arguments["query"],
+                top_k=int(arguments.get("top_k", 5)),
+            )
+        elif name == "get_adjacent_chunks":
+            return _exec_get_adjacent_chunks(
+                chunk_id=arguments["chunk_id"],
+                direction=arguments.get("direction", "both"),
+            )
+        else:
+            return json.dumps({"error": f"Unknown tool: {name}"})
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
 # ============================================================
-# Register tools with LLM and ToolNode
+# Agent state
 # ============================================================
 
-TOOLS = [search_chunks, get_adjacent_chunks]
-llm_with_tools = llm.bind_tools(TOOLS)
-tool_node = ToolNode(TOOLS)
+MAX_TOOL_CYCLES = 3
+
+class AgentState(TypedDict):
+    user_question:      str
+    is_clinical:        bool
+    messages:           list[dict[str, Any]]
+    tool_call_count:    int
+    formatted_response: str
+    error:              str
 
 
 # ============================================================
-# System prompt  tells the LLM its role and tool usage rules
+# System prompt
 # ============================================================
 
-SYSTEM_PROMPT = """You are an expert Clinical AI Assistant for Tuberculosis Preventive Treatment (TPT) in India.
-You have access to a database of indexed clinical PDF documents including treatment protocols,
-lab reports, patient summaries, policy documents, and research papers.
+SYSTEM_PROMPT = """You are AskDoc, a helpful AI assistant that answers questions based on uploaded PDF documents.
+You have access to a database of indexed PDF documents.
 
 You have two tools:
 
-1. search_chunks  call this FIRST for every clinical question.
+1. search_chunks — call this FIRST for every question.
    It searches the PDF database semantically and returns the most relevant text chunks.
 
-2. get_adjacent_chunks  call this ONLY if a retrieved chunk cuts off mid-sentence
+2. get_adjacent_chunks — call this ONLY if a retrieved chunk cuts off mid-sentence
    or you need surrounding context to complete the answer. Pass the chunk_id from
    the search result and the direction (prev, next, or both).
 
@@ -301,8 +332,8 @@ Rules:
 - Do not call any tool more than once with the same arguments.
 - After gathering enough context, stop calling tools and write your final answer.
 - Base your answer only on the retrieved chunks. Do not hallucinate.
-- Cite the source filename and page number for every key fact.
-- Format the final answer in clear Markdown."""
+- Format the final answer in clear, readable Markdown.
+- Never include references, citations, source filenames, page numbers, chunk IDs, or internal retrieval details in your answer."""
 
 
 # ============================================================
@@ -310,103 +341,84 @@ Rules:
 # ============================================================
 
 def check_intent(state: AgentState) -> AgentState:
-    """
-    Classifies the question as clinical or non-clinical.
-    Non-clinical questions get a friendly reply and skip the tool loop entirely.
-    """
+    """Prepare messages for the generate node. All questions are answered."""
     question = state.get("user_question", "").strip()
     if not question:
-        return {**state, "error": "Empty question received.", "formatted_response": "Please ask a clinical question."}
+        return {**state, "error": "Empty question.", "formatted_response": "Please ask a question."}
 
-    prompt = f"""Classify the following message as CLINICAL or NON_CLINICAL.
-
-CLINICAL means: anything about patient treatment, TB protocols, lab results, clinical guidelines,
-research, policies, medications, dosages, diagnoses, or anything answerable from clinical PDF documents.
-NON_CLINICAL means: greetings, jokes, or general knowledge unrelated to clinical documents.
-
-Reply with exactly one word: CLINICAL or NON_CLINICAL
-
-Message: {question}
-Classification:"""
-
-    try:
-        @_retry_decorator
-        def _call():
-            return llm.invoke(prompt).content.strip().upper()
-
-        classification = _call()
-        is_clinical = classification.startswith("CLINICAL")
-        logger.info("Intent classification: %s", classification)
-
-        if not is_clinical:
-            @_retry_decorator
-            def _friendly():
-                p = f"""You are a friendly Clinical Document AI Assistant.
-The user sent a non-clinical message. Respond warmly in 2-3 sentences.
-Mention that you can help search clinical PDFs including treatment protocols, lab reports, and research papers.
-Message: {question}"""
-                return llm.invoke(p).content.strip()
-
-            return {
-                **state,
-                "is_clinical": False,
-                "formatted_response": _friendly(),
-                "messages": [],
-            }
-
-        return {
-            **state,
-            "is_clinical": True,
-            "messages": [
-                SystemMessage(content=SYSTEM_PROMPT),
-                HumanMessage(content=question),
-            ],
-        }
-
-    except Exception as e:
-        logger.exception("check_intent failed: %s", e)
-        return {
-            **state,
-            "is_clinical": True,
-            "messages": [
-                SystemMessage(content=SYSTEM_PROMPT),
-                HumanMessage(content=question),
-            ],
-        }
+    return {
+        **state,
+        "is_clinical":     True,
+        "tool_call_count": 0,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": question},
+        ],
+    }
 
 
-def route_after_intent(state: AgentState) -> Literal["agent_node", "format_response"]:
-    return "agent_node" if state.get("is_clinical", True) else "format_response"
+def route_after_intent(state: AgentState) -> Literal["generate", "done"]:
+    return "generate" if state.get("is_clinical", True) else "done"
 
 
-def agent_node(state: AgentState) -> AgentState:
+def generate(state: AgentState) -> AgentState:
     """
-    The core agent loop node.
-    The LLM receives the full message history (including prior tool results)
-    and decides to either call a tool or produce a final answer.
+    Core agent node. Sends messages + tool definitions directly to Groq API.
+    No LangChain bind_tools — tools are passed as raw dicts.
+    The LLM either returns a tool_call or a plain text answer.
     """
     messages = state.get("messages", [])
 
     @_retry_decorator
     def _call():
-        return llm_with_tools.invoke(messages)
+        return _groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=messages,
+            tools=TOOLS,
+            tool_choice="auto",
+            temperature=0,
+            max_tokens=2048,
+        )
 
     try:
         response = _call()
-        logger.info(
-            "Agent response: tool_calls=%d",
-            len(response.tool_calls) if hasattr(response, "tool_calls") else 0,
-        )
-        return {**state, "messages": [response]}
+        msg      = response.choices[0].message
+
+        if msg.tool_calls:
+            updated_messages = list(messages) + [{
+                "role":       "assistant",
+                "content":    msg.content or "",
+                "tool_calls": [
+                    {
+                        "id":       tc.id,
+                        "type":     "function",
+                        "function": {
+                            "name":      tc.function.name,
+                            "arguments": tc.function.arguments,
+                        },
+                    }
+                    for tc in msg.tool_calls
+                ],
+            }]
+            logger.info("generate: LLM requested %d tool call(s).", len(msg.tool_calls))
+        else:
+            updated_messages = list(messages) + [{
+                "role":    "assistant",
+                "content": msg.content or "",
+            }]
+            logger.info("generate: LLM produced final answer.")
+
+        return {**state, "messages": updated_messages}
+
     except Exception as e:
-        logger.exception("agent_node failed: %s", e)
+        logger.exception("generate failed: %s", e)
         return {**state, "error": str(e)}
 
 
-def route_after_agent(state: AgentState) -> Literal["tool_node", "format_response"]:
+def route_after_generate(state: AgentState) -> Literal["execute_tool", "format_response"]:
     """
-    If the last message from the LLM contains tool_calls, execute them.
-    Otherwise the LLM is done reasoning and we move to format_response.
+    If the last assistant message has tool_calls AND we're under the cap, execute them.
+    Otherwise go straight to format_response.
     """
     if state.get("error"):
         return "format_response"
@@ -415,20 +427,55 @@ def route_after_agent(state: AgentState) -> Literal["tool_node", "format_respons
     if not messages:
         return "format_response"
 
-    last = messages[-1]
-    if hasattr(last, "tool_calls") and last.tool_calls:
-        return "tool_node"
+    last         = messages[-1]
+    has_tools    = bool(last.get("tool_calls"))
+    under_limit  = state.get("tool_call_count", 0) < MAX_TOOL_CYCLES
 
+    if has_tools and under_limit:
+        return "execute_tool"
     return "format_response"
+
+
+def execute_tool(state: AgentState) -> AgentState:
+    """
+    Executes all tool calls from the last assistant message.
+    Appends one tool message per call back into the message history.
+    No LangChain ToolNode — plain Python function dispatch.
+    """
+    messages = list(state.get("messages", []))
+    last     = messages[-1]
+
+    for tc in last.get("tool_calls", []):
+        name      = tc["function"]["name"]
+        arguments = tc["function"]["arguments"]
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except json.JSONDecodeError:
+                arguments = {}
+
+        logger.info("execute_tool: calling %s with %s", name, arguments)
+        result = _execute_tool(name, arguments)
+
+        messages.append({
+            "role":         "tool",
+            "tool_call_id": tc["id"],
+            "name":         name,
+            "content":      result,
+        })
+
+    return {
+        **state,
+        "messages":        messages,
+        "tool_call_count": state.get("tool_call_count", 0) + 1,
+    }
 
 
 def format_response(state: AgentState) -> AgentState:
     """
-    Synthesises the full message history (including all tool results)
-    into a final clean Markdown clinical response.
-
-    If the agent already produced a plain-text final answer (no more tool calls),
-    we use it directly. Otherwise we ask the LLM to summarise what it collected.
+    Extracts the final answer from the message history.
+    If the last assistant message is plain text — use it directly.
+    If the loop ended on a tool message — ask the LLM to synthesise a final answer.
     """
     if state.get("error"):
         return {**state, "formatted_response": "Something went wrong. Please try again."}
@@ -438,31 +485,34 @@ def format_response(state: AgentState) -> AgentState:
 
     messages = state.get("messages", [])
     if not messages:
-        return {**state, "formatted_response": "I could not find relevant information in the clinical documents."}
+        return {**state, "formatted_response": "No relevant information found in the uploaded documents."}
 
     last = messages[-1]
 
-    # If the last message is a plain AIMessage (no tool calls), it is the final answer
-    if isinstance(last, AIMessage) and not getattr(last, "tool_calls", []):
-        return {**state, "formatted_response": last.content.strip()}
+    if last.get("role") == "assistant" and not last.get("tool_calls"):
+        return {**state, "formatted_response": (last.get("content") or "").strip()}
 
-    # Fallback: ask the LLM to write the final answer based on the conversation so far
-    summary_messages = messages + [
-        HumanMessage(content=(
+    summary_messages = list(messages) + [{
+        "role":    "user",
+        "content": (
             "Based on all the document chunks you retrieved above, "
-            "write the final clinical answer in clear Markdown. "
-            "Cite the source filename and page number for key facts. "
-            "Do not call any more tools."
-        ))
-    ]
+            "write the final answer in clear, readable Markdown. "
+            "Do not call any more tools. Do not mention chunk IDs, filenames, page numbers, or any internal identifiers."
+        ),
+    }]
 
     @_retry_decorator
     def _summarise():
-        return llm.invoke(summary_messages).content.strip()
+        r = _groq_client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=summary_messages,
+            temperature=0,
+            max_tokens=2048,
+        )
+        return r.choices[0].message.content.strip()
 
     try:
-        answer = _summarise()
-        return {**state, "formatted_response": answer}
+        return {**state, "formatted_response": _summarise()}
     except Exception as e:
         logger.exception("format_response failed: %s", e)
         return {**state, "formatted_response": "Something went wrong while formatting the response."}
@@ -470,34 +520,28 @@ def format_response(state: AgentState) -> AgentState:
 
 # ============================================================
 # Graph assembly
-# recursion_limit=3 is enforced at invoke() time in app.py,
-# capping the agent<->tool_node loop to at most 3 cycles.
 # ============================================================
 
 workflow = StateGraph(AgentState)
 
 workflow.add_node("check_intent",    check_intent)
-workflow.add_node("agent_node",      agent_node)
-workflow.add_node("tool_node",       tool_node)
+workflow.add_node("generate",        generate)
+workflow.add_node("execute_tool",    execute_tool)
 workflow.add_node("format_response", format_response)
 
 workflow.add_edge(START, "check_intent")
 
 workflow.add_conditional_edges(
     "check_intent", route_after_intent,
-    {"agent_node": "agent_node", "format_response": "format_response"}
+    {"generate": "generate", "done": "format_response"}
 )
 
 workflow.add_conditional_edges(
-    "agent_node", route_after_agent,
-    {"tool_node": "tool_node", "format_response": "format_response"}
+    "generate", route_after_generate,
+    {"execute_tool": "execute_tool", "format_response": "format_response"}
 )
 
-# After tool_node executes, go back to agent_node so the LLM can see the result
-# and decide whether to call another tool or stop.
-# recursion_limit=3 breaks this loop after 3 agent<->tool cycles.
-workflow.add_edge("tool_node", "agent_node")
-
+workflow.add_edge("execute_tool",    "generate")
 workflow.add_edge("format_response", END)
 
 graph = workflow.compile()
